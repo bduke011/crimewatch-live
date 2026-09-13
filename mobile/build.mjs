@@ -23,4 +23,8 @@ await build({entryPoints:['mobile/bridge.js'],bundle:true,format:'iife',outfile:
 await mkdir('mobile/assets',{recursive:true});
 const svg='<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024"><rect width="1024" height="1024" fill="#080e18"/><circle cx="512" cy="512" r="352" fill="#102536"/><path d="M735 288a316 316 0 1 0 0 448M512 334v178l196-112" fill="none" stroke="#6ce5ed" stroke-width="65" stroke-linecap="round"/><circle cx="512" cy="512" r="48" fill="#6ce5ed"/></svg>';
 await sharp(Buffer.from(svg)).png().toFile('mobile/assets/AppIcon.png');
+const splashIcon=await sharp(Buffer.from(svg)).resize(420,420).png().toBuffer();
+const splash=await sharp({create:{width:2732,height:2732,channels:3,background:'#080e18'}}).composite([{input:splashIcon,gravity:'centre'}]).png().toBuffer();
+for(const name of ['splash-2732x2732.png','splash-2732x2732-1.png','splash-2732x2732-2.png'])await writeFile('ios/App/App/Assets.xcassets/Splash.imageset/'+name,splash);
+await cp('mobile/assets/AppIcon.png','ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png');
 console.log('Bundled CrimeWatch: local UI, local map libraries, HTTPS data transport, saved reports.');

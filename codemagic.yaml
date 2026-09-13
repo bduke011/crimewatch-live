@@ -1,4 +1,38 @@
 workflows:
+  ios-archive:
+    name: CrimeWatch signed app and simulator preview
+    instance_type: mac_mini_m2
+    max_build_duration: 30
+    integrations:
+      app_store_connect: Scan2Profit
+    environment:
+      node: 22
+      xcode: latest
+      ios_signing:
+        certificates:
+          - scan2profit_appstore
+        provisioning_profiles:
+          - crimewatch_appstore_profile
+    scripts:
+      - name: Install dependencies
+        script: npm ci
+      - name: Test and bundle iPhone app
+        script: npm test && npm run ios:sync
+      - name: Run on iPhone simulator
+        script: bash mobile/simulator-smoke.sh
+      - name: Set build number
+        script: |
+          cd ios/App
+          agvtool new-version -all "$((BUILD_NUMBER + 1))"
+      - name: Apply signing profile
+        script: xcode-project use-profiles
+      - name: Build signed iPhone app
+        script: xcode-project build-ipa --project ios/App/App.xcodeproj --scheme App
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - build/iphone-launch.png
+      - build/simulator-compile.log
+      - /tmp/xcodebuild_logs/*.log
   ios-simulator:
     name: CrimeWatch iPhone compile check
     instance_type: mac_mini_m2
