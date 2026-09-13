@@ -23,7 +23,19 @@ async function syncNow(){await load;if(!Capacitor.isNativePlatform())return;
 }
 export function syncAlerts(){const task=serial.catch(()=>{}).then(syncNow);serial=task;return task;}
 export async function refreshWatched(){await load;if(!prefs.enabled||!prefs.updates||!identity)return[];const r=await request(null,'GET');return r.reports||[];}
-async function register(){if(!registration){registration=new Promise((resolve,reject)=>{const timer=setTimeout(()=>{registration=null;reject(Error('Notification registration timed out. Try saving again.'));},15000);PushNotifications.addListener('registration',async result=>{token=result.value;clearTimeout(timer);await Preferences.set({key:'crimewatch.pushToken',value:token});resolve();}).catch(reject);PushNotifications.addListener('registrationError',()=>{clearTimeout(timer);registration=null;reject(Error('Apple could not register notifications. Please try again.'));}).catch(reject);});}await PushNotifications.register();return registration;}
+async function register(){
+ if(registration)return registration;
+ registration=(async()=>{
+  let resolveToken,rejectToken,timer,success,failure;
+  const pending=new Promise((resolve,reject)=>{resolveToken=resolve;rejectToken=reject;});
+  try{
+   success=await PushNotifications.addListener('registration',async result=>{try{token=result.value;await Preferences.set({key:'crimewatch.pushToken',value:token});resolveToken();}catch(e){rejectToken(e);}});
+   failure=await PushNotifications.addListener('registrationError',()=>rejectToken(Error('Apple could not register notifications. Please try again.')));
+   timer=setTimeout(()=>rejectToken(Error('Notification registration timed out. Try saving again.')),15000);
+   await PushNotifications.register();await pending;
+  }finally{clearTimeout(timer);await success?.remove();await failure?.remove();registration=null;}
+ })();return registration;
+}
 async function resume(){await load;if(!Capacitor.isNativePlatform())return;
  if(prefs.enabled){const p=await PushNotifications.checkPermissions();if(p.receive==='granted')await register();else{message('Notifications are disabled in iPhone Settings.');if(identity)await request({action:'disable'});return;}}
  await syncAlerts();
