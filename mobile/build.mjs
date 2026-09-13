@@ -10,6 +10,7 @@ for(const file of await readdir('public')) {
   content=content.replace(/https:\/\/unpkg.com\/leaflet@1.9.4\/dist\//g,'vendor/leaflet/').replace(/https:\/\/unpkg.com\/leaflet.markercluster@1.5.3\/dist\//g,'vendor/cluster/');
   content=content.replace(/\s+integrity="[^"]*"/g,'');
   content=content.replace('</head>','<link rel="stylesheet" href="mobile.css"><script src="mobile.js"></script></head>');
+  if(file==='index.html')content=content.replace(/<h3>Privacy<\/h3><p>[\s\S]*?<\/p>/,'<h3>Privacy</h3><p>No account is needed. Searches are sent to CrimeWatch’s server to search public records. Saved reports and your preferred area stay on this device. Map tiles load from OpenStreetMap; map software and the interface are bundled with the app. There are no advertising or analytics trackers. The web host may retain normal access logs. <a href="privacy.html">Read the app privacy information</a>.</p>');
  }
  if(file==='app.js') content=content.replace("state.selectedRecord=r;","state.selectedRecord=r;document.dispatchEvent(new CustomEvent('crimewatch:detail',{detail:r}));");
  if(file.endsWith('.css'))content=content.replace(/@import\s+url\([^)]*fonts.googleapis[^)]*\);?/g,'');
