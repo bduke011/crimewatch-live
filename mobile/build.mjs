@@ -20,6 +20,8 @@ for(const file of ['saved.html','privacy.html','mobile.css'])await cp('mobile/'+
 await mkdir('dist-mobile/vendor',{recursive:true});
 await cp('node_modules/leaflet/dist','dist-mobile/vendor/leaflet',{recursive:true});
 await cp('node_modules/leaflet.markercluster/dist','dist-mobile/vendor/cluster',{recursive:true});
+await cp('node_modules/leaflet/LICENSE','dist-mobile/vendor/leaflet/LICENSE');
+await cp('node_modules/leaflet.markercluster/MIT-LICENCE.txt','dist-mobile/vendor/cluster/MIT-LICENCE.txt');
 await build({entryPoints:['mobile/bridge.js'],bundle:true,format:'iife',outfile:'dist-mobile/mobile.js',target:'safari15',minify:true});
 await mkdir('mobile/assets',{recursive:true});
 const svg='<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024"><rect width="1024" height="1024" fill="#080e18"/><circle cx="512" cy="512" r="352" fill="#102536"/><path d="M735 288a316 316 0 1 0 0 448M512 334v178l196-112" fill="none" stroke="#6ce5ed" stroke-width="65" stroke-linecap="round"/><circle cx="512" cy="512" r="48" fill="#6ce5ed"/></svg>';
