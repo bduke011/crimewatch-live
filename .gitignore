@@ -1,0 +1,27 @@
+# Collected data and runtime state never belong in source control.
+data/
+raw/
+search/
+additional/
+supplemental/
+vendor/
+backups/
+*.sqlite*
+*.db
+*.db-*
+*.pdf
+*.zip
+*.gz
+*.log
+*.lock
+__pycache__/
+*.pyc
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.dpapi
+node_modules/
+.DS_Store
+Thumbs.db
