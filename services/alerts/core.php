@@ -18,17 +18,21 @@ function ca_db(): PDO {
 }
 function ca_archive(): PDO {return new PDO('sqlite:'.(getenv('CRIMEWATCH_ARCHIVE')?:dirname(__DIR__).'/public_html/data/crimewatch.sqlite'),null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);}
 function ca_settings(array $s):array {
+ $s['locationMode']=$s['locationMode']??'fixed';$s['backgroundLocation']=$s['backgroundLocation']??false;$s['locationUpdatedAt']=$s['locationUpdatedAt']??0;
+ if(!in_array($s['locationMode'],['fixed','current'],true)||!is_bool($s['backgroundLocation'])||!is_numeric($s['locationUpdatedAt'])||$s['locationUpdatedAt']<0||$s['locationUpdatedAt']>time()+300)throw new InvalidArgumentException('Invalid location preferences.');
  foreach(['enabled','nearby','daily','updates'] as $k)if(!isset($s[$k])||!is_bool($s[$k]))throw new InvalidArgumentException('Invalid alert switches.');
  if(!is_string($s['agency']??null)||!preg_match('/^[a-z0-9-]{1,50}$/',$s['agency']))throw new InvalidArgumentException('Invalid area.');
- $c=$s['center']??null;if(!is_array($c)||count($c)!==2||!is_numeric($c[0])||!is_numeric($c[1])||$c[0]<25||$c[0]>37||$c[1]< -107||$c[1]> -93)throw new InvalidArgumentException('Invalid center.');
+ $c=$s['center']??null;if(!is_array($c)||count($c)!==2||!is_numeric($c[0])||!is_numeric($c[1])||$c[0]< -90||$c[0]>90||$c[1]< -180||$c[1]>180)throw new InvalidArgumentException('Invalid center.');
  if(!in_array($s['radius']??null,[1,3,5,10,25],true))throw new InvalidArgumentException('Invalid radius.');
  if(!is_array($s['categories']??null)||count($s['categories'])>4||array_diff($s['categories'],['person','property','drugs','other']))throw new InvalidArgumentException('Invalid categories.');
  if(!is_int($s['hour']??null)||$s['hour']<0||$s['hour']>23||!is_string($s['timezone']??null)||!in_array($s['timezone'],DateTimeZone::listIdentifiers(DateTimeZone::ALL_WITH_BC),true))throw new InvalidArgumentException('Invalid summary time.');
  if($s['enabled']&&(!$s['nearby']&&!$s['daily']&&!$s['updates']||($s['nearby']||$s['daily'])&&!count($s['categories'])))throw new InvalidArgumentException('Choose alert types and categories.');
- return array_intersect_key($s,array_flip(['enabled','nearby','daily','updates','agency','center','radius','categories','hour','timezone']));
+ $s['center']=[round((float)$c[0],3),round((float)$c[1],3)];$s['locationUpdatedAt']=(int)$s['locationUpdatedAt'];
+ return array_intersect_key($s,array_flip(['enabled','nearby','daily','updates','agency','center','radius','categories','hour','timezone','locationMode','backgroundLocation','locationUpdatedAt']));
 }
+function ca_fresh(array $s,int $now):bool{return ($s['locationMode']??'fixed')!=='current'||(($s['locationUpdatedAt']??0)>$now-21600&&($s['locationUpdatedAt']??0)<=$now+300);}
 function ca_matches(array $r,array $s):bool {
- if($r['agency']!==$s['agency']||!in_array($r['category'],$s['categories'],true)||$r['lat']===null||$r['lng']===null)return false;
+ if((($s['locationMode']??'fixed')!=='current'&&$r['agency']!==$s['agency'])||!in_array($r['category'],$s['categories'],true)||$r['lat']===null||$r['lng']===null)return false;
  $a=deg2rad((float)$r['lat']);$b=deg2rad((float)$s['center'][0]);$dl=deg2rad((float)$r['lng']-(float)$s['center'][1]);
  $h=sin(($a-$b)/2)**2+cos($a)*cos($b)*sin($dl/2)**2;
  return 3958.7613*2*asin(sqrt(min(1,$h)))<=(float)$s['radius'];
@@ -52,8 +56,8 @@ function ca_plan(PDO $db,array $d,int $now):array {
  if($e['kind']==='update'&&$e['seq']>$d['update_cursor']&&isset($watch[$r['id']])&&$e['seq']>$watch[$r['id']])$updates[$r['id']]=true;
  }
  $plans=[];$local=(new DateTimeImmutable('@'.$now))->setTimezone(new DateTimeZone($s['timezone']));$day=$local->format('Y-m-d');
- if($s['nearby']&&count($near)&&$now-(int)$d['near_sent']>=3600)$plans[]=['kind'=>'nearby','count'=>count($near),'cursor'=>$max,'day'=>''];
- if($s['daily']&&(int)$local->format('G')>=$s['hour']&&$d['daily_day']!==$day)$plans[]=['kind'=>'daily','count'=>count($daily),'cursor'=>$max,'day'=>$day];
+ if(ca_fresh($s,$now)&&$s['nearby']&&count($near)&&$now-(int)$d['near_sent']>=3600)$plans[]=['kind'=>'nearby','count'=>count($near),'cursor'=>$max,'day'=>''];
+ if(ca_fresh($s,$now)&&$s['daily']&&(int)$local->format('G')>=$s['hour']&&$d['daily_day']!==$day)$plans[]=['kind'=>'daily','count'=>count($daily),'cursor'=>$max,'day'=>$day];
  if($s['updates']&&count($updates)&&$now-(int)$d['update_sent']>=3600)$plans[]=['kind'=>'updates','count'=>count($updates),'cursor'=>$max,'day'=>''];
  return $plans;
 }

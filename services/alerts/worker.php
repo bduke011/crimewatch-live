@@ -30,6 +30,7 @@ try{
  $db->commit();
  // Persist retry identifier before sending. Recheck settings under the same database lock as the send.
  $db->beginTransaction();$pending->execute([$d['id']]);$delivery=$pending->fetch();$q->execute([$d['id']]);$fresh=$q->fetch();if(!$delivery||!$fresh||!$fresh['enabled']){$db->commit();continue;}
+ if($delivery['kind']!=='updates'&&!ca_fresh(json_decode($fresh['settings'],true),time())){$db->prepare('DELETE FROM deliveries WHERE id=?')->execute([$delivery['id']]);$db->commit();continue;}
  [$status,$reason]=ca_send($config,$fresh['token'],$delivery);
  if($status===200){$kind=$delivery['kind'];$sql=match($kind){'nearby'=>'near_cursor=?,near_sent=?','daily'=>'daily_cursor=?,daily_day=?','updates'=>'update_cursor=?,update_sent=?'};$db->prepare("UPDATE devices SET $sql WHERE id=?")->execute([$delivery['cursor'],$kind==='daily'?$delivery['day']:$now,$d['id']]);$db->prepare('DELETE FROM deliveries WHERE id=?')->execute([$delivery['id']]);$sent++;}
  elseif($status===410||($status===400&&in_array($reason,['BadDeviceToken','DeviceTokenNotForTopic'],true))){$db->prepare("UPDATE devices SET enabled=0,settings='{}',watched='{}' WHERE id=?")->execute([$d['id']]);$db->prepare('DELETE FROM deliveries WHERE device=?')->execute([$d['id']]);}

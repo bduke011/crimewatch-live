@@ -16,6 +16,16 @@ try{
  $body=file_get_contents('php://input',false,null,0,20001);if(strlen($body)>20000)throw new InvalidArgumentException('Request too large.');$input=json_decode($body,true,32,JSON_THROW_ON_ERROR);
  if(!is_array($input))throw new InvalidArgumentException('Invalid request.');
  $db->beginTransaction();
+ if(($input['action']??'')==='location'){
+ if(!$d){$db->rollBack();http_response_code(401);exit;}
+ $q=$db->prepare('SELECT * FROM devices WHERE id=?');$q->execute([$id]);$d=$q->fetch();$s=json_decode($d['settings'],true);
+ if(!$d['enabled']||($s['locationMode']??'fixed')!=='current'){$db->rollBack();http_response_code(409);exit;}
+ $incoming=ca_settings(array_merge($s,['center'=>$input['center']??null,'locationUpdatedAt'=>$input['locationUpdatedAt']??0]));
+ if(ca_fresh($incoming,$now)&&$incoming['locationUpdatedAt']>=($s['locationUpdatedAt']??0)){
+ $db->prepare('UPDATE devices SET settings=?,touched=? WHERE id=?')->execute([json_encode($incoming),$now,$id]);
+ if($incoming['center']!==$s['center'])$db->prepare("DELETE FROM deliveries WHERE device=? AND kind IN('nearby','daily')")->execute([$id]);
+ }$db->commit();echo '{"ok":true}';exit;
+ }
  if(($input['action']??'')==='disable'){
  if(!$d){http_response_code(401);$db->rollBack();exit;}
  $q=$db->prepare("UPDATE devices SET enabled=0,settings='{}',watched='{}',touched=? WHERE id=?");$q->execute([$now,$id]);$db->prepare('DELETE FROM deliveries WHERE device=?')->execute([$id]);$db->commit();echo '{"ok":true}';exit;
@@ -32,7 +42,11 @@ try{
  $q=$db->prepare('INSERT INTO devices(id,secret,token,settings,watched,enabled,created,touched,near_cursor,daily_cursor,update_cursor) VALUES(?,?,?,\'{}\',\'{}\',0,?,?,?,?,?)');$q->execute([$id,hash('sha256',$secret),$token,$now,$now,$seq,$seq,$seq]);
  }
  $watch=json_decode($d['watched'],true)?:[];$watched=[];if($s['updates'])foreach($ids as $rid)$watched[$rid]=$watch[$rid]??$seq;
- $old=json_decode($d['settings'],true);$changed=$old!==$s||!$d['enabled'];
+ $old=json_decode($d['settings'],true);
+ if(($old['locationMode']??'fixed')==='current'&&$s['locationMode']==='current'&&($old['locationUpdatedAt']??0)>$s['locationUpdatedAt']){$s['center']=$old['center'];$s['locationUpdatedAt']=$old['locationUpdatedAt'];}
+ $oldCompare=$old;$newCompare=$s;if($s['locationMode']==='current'&&($old['locationMode']??'fixed')==='current'){unset($oldCompare['center'],$oldCompare['locationUpdatedAt'],$newCompare['center'],$newCompare['locationUpdatedAt']);}
+ $changed=$oldCompare!==$newCompare||!$d['enabled'];
+ if($s['locationMode']==='current'&&($old['center']??null)!==$s['center'])$db->prepare("DELETE FROM deliveries WHERE device=? AND kind IN('nearby','daily')")->execute([$id]);
  $q=$db->prepare('UPDATE devices SET token=?,settings=?,watched=?,enabled=?,touched=? WHERE id=?');$q->execute([$token,json_encode($s,JSON_THROW_ON_ERROR),json_encode((object)$watched),$s['enabled']?1:0,$now,$id]);
  if($changed){$local=(new DateTimeImmutable('@'.$now))->setTimezone(new DateTimeZone($s['timezone']));$day=(int)$local->format('G')>=$s['hour']?$local->format('Y-m-d'):'';$db->prepare('UPDATE devices SET near_cursor=?,daily_cursor=?,update_cursor=?,daily_day=? WHERE id=?')->execute([$seq,$seq,$seq,$day,$id]);$db->prepare('DELETE FROM deliveries WHERE device=?')->execute([$id]);}
  $db->commit();echo json_encode(['ok'=>true,'identity'=>$identity],JSON_THROW_ON_ERROR);

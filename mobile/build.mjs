@@ -12,7 +12,7 @@ for(const file of await readdir('public')) {
   content=content.replace('</head>','<link rel="stylesheet" href="mobile.css"><script src="mobile.js"></script></head>');
   if(file==='index.html')content=content.replace(/<h3>Privacy<\/h3><p>[\s\S]*?<\/p>/,'<h3>Privacy</h3><p>No account is needed. Searches are sent to CrimeWatch’s server to search public records. Saved reports stay on this device. If you enable alerts, your chosen area, notification token, and watched report IDs are sent to CrimeWatch. Map tiles load from OpenStreetMap; map software and the interface are bundled with the app. There are no advertising or analytics trackers. The web host may retain normal access logs. <a href="privacy.html">Read the app privacy information</a>.</p>');
  }
- if(file==='app.js') content=content.replace("state.selectedRecord=r;","state.selectedRecord=r;document.dispatchEvent(new CustomEvent('crimewatch:detail',{detail:r}));");
+ if(file==='app.js') content=(content+'\n'+await readFile('mobile/map-location.js','utf8')).replace("state.selectedRecord=r;","state.selectedRecord=r;document.dispatchEvent(new CustomEvent('crimewatch:detail',{detail:r}));");
  if(file.endsWith('.css'))content=content.replace(/@import\s+url\([^)]*fonts.googleapis[^)]*\);?/g,'');
  await writeFile('dist-mobile/'+file,content);
 }

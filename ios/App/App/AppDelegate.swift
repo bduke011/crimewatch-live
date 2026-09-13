@@ -1,5 +1,6 @@
 import UIKit
 import Capacitor
+import CoreLocation
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -15,7 +16,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
+        CrimeWatchLocationMonitor.shared.restore()
         return true
     }
 
@@ -54,4 +55,82 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         return ApplicationDelegateProxy.shared.application(application, continue: userActivity, restorationHandler: restorationHandler)
     }
 
+}
+
+// Significant-change monitoring avoids continuous GPS use. iOS controls its delivery timing.
+final class CrimeWatchLocationMonitor: NSObject, CLLocationManagerDelegate {
+    static let shared = CrimeWatchLocationMonitor()
+    private let manager = CLLocationManager()
+    private let store = UserDefaults.standard
+    private var lastUpload: Date = .distantPast
+    override init() { super.init(); manager.delegate = self }
+    func restore() {
+        if store.bool(forKey: "cw.background.enabled") && manager.authorizationStatus == .authorizedAlways {
+            manager.startMonitoringSignificantLocationChanges()
+        } else { manager.stopMonitoringSignificantLocationChanges() }
+    }
+    func configure(enabled: Bool, id: String?, secret: String?, requestPermission: Bool) {
+        store.set(enabled, forKey: "cw.background.enabled")
+        if enabled, let id = id, let secret = secret {
+            store.set(id, forKey: "cw.background.id"); store.set(secret, forKey: "cw.background.secret")
+            if requestPermission && manager.authorizationStatus == .authorizedWhenInUse { manager.requestAlwaysAuthorization() }
+        } else {
+            store.removeObject(forKey: "cw.background.id"); store.removeObject(forKey: "cw.background.secret")
+        }
+        restore()
+    }
+    var status: String {
+        switch manager.authorizationStatus {
+        case .authorizedAlways: return "always"
+        case .authorizedWhenInUse: return "whenInUse"
+        case .denied, .restricted: return "denied"
+        default: return "prompt"
+        }
+    }
+    func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) { restore() }
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        guard store.bool(forKey: "cw.background.enabled"), manager.authorizationStatus == .authorizedAlways,
+              let point = locations.last, point.horizontalAccuracy >= 0, point.horizontalAccuracy <= 5000,
+              abs(point.timestamp.timeIntervalSinceNow) < 300,
+              Date().timeIntervalSince(lastUpload) > 60,
+              let id = store.string(forKey: "cw.background.id"), let secret = store.string(forKey: "cw.background.secret") else { return }
+        var request = URLRequest(url: URL(string: "https://crimewatch.live/alerts-api.php")!)
+        request.httpMethod = "POST"; request.timeoutInterval = 12
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(id, forHTTPHeaderField: "X-CrimeWatch-Device")
+        request.setValue(secret, forHTTPHeaderField: "X-CrimeWatch-Secret")
+        let center = [(point.coordinate.latitude * 1000).rounded() / 1000, (point.coordinate.longitude * 1000).rounded() / 1000]
+        request.httpBody = try? JSONSerialization.data(withJSONObject: ["action":"location", "center":center, "locationUpdatedAt":Int(point.timestamp.timeIntervalSince1970)])
+        var taskID: UIBackgroundTaskIdentifier = .invalid
+        taskID = UIApplication.shared.beginBackgroundTask(withName: "CrimeWatch alert area") {
+            if taskID != .invalid { UIApplication.shared.endBackgroundTask(taskID); taskID = .invalid }
+        }
+        lastUpload = Date()
+        URLSession.shared.dataTask(with: request) { _, response, _ in
+            DispatchQueue.main.async {
+                if let status = (response as? HTTPURLResponse)?.statusCode, status == 401 || status == 409 {
+                    self.configure(enabled: false, id: nil, secret: nil, requestPermission: false)
+                }
+                if taskID != .invalid { UIApplication.shared.endBackgroundTask(taskID); taskID = .invalid }
+            }
+        }.resume()
+    }
+}
+
+@objc(CrimeWatchLocationPlugin)
+public class CrimeWatchLocationPlugin: CAPPlugin, CAPBridgedPlugin {
+    public let identifier = "CrimeWatchLocationPlugin"
+    public let jsName = "CrimeWatchLocation"
+    public let pluginMethods: [CAPPluginMethod] = [CAPPluginMethod(name: "configure", returnType: CAPPluginReturnPromise), CAPPluginMethod(name: "status", returnType: CAPPluginReturnPromise)]
+    @objc func configure(_ call: CAPPluginCall) {
+        DispatchQueue.main.async {
+            CrimeWatchLocationMonitor.shared.configure(enabled: call.getBool("enabled") ?? false, id: call.getString("id"), secret: call.getString("secret"), requestPermission: call.getBool("requestPermission") ?? false)
+            call.resolve(["authorization":CrimeWatchLocationMonitor.shared.status])
+        }
+    }
+    @objc func status(_ call: CAPPluginCall) { DispatchQueue.main.async { call.resolve(["authorization":CrimeWatchLocationMonitor.shared.status]) } }
+}
+
+class CrimeWatchViewController: CAPBridgeViewController {
+    override func capacitorDidLoad() { bridge?.registerPluginInstance(CrimeWatchLocationPlugin()) }
 }

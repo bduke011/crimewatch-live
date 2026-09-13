@@ -1,3 +1,4 @@
+import {initLocationButton} from './location.js';
 import { Capacitor } from '@capacitor/core';
 import { Preferences } from '@capacitor/preferences';
 import { Share } from '@capacitor/share';
@@ -36,7 +37,7 @@ document.addEventListener('DOMContentLoaded',async()=>{
  const status=document.createElement('p');status.id='mobileStatus';status.setAttribute('role','status');status.className='mobile-status';document.body.append(status);
  const offline=document.createElement('div');offline.className='mobile-offline';offline.textContent='You’re offline. Saved reports are still available.';offline.hidden=navigator.onLine;document.body.prepend(offline);
  window.addEventListener('offline',()=>offline.hidden=false);window.addEventListener('online',()=>offline.hidden=true);
- await ready;renderSaved();
+ await ready;renderSaved();initLocationButton();
  initAlerts().catch(()=>announce('Alert settings could not load. Please try again.'));
  if(page==='saved.html')refreshWatched().then(async reports=>{if(!reports.length)return;let changes=0;const next=saved.map(old=>{const current=reports.find(r=>r.id===old.id);if(!current||current.changedAt===old.changedAt)return old;changes++;return {...old,...current,refreshedAt:new Date().toISOString()};});if(changes){await Preferences.set({key:'crimewatch.saved',value:JSON.stringify(next)});saved=next;document.dispatchEvent(new Event('crimewatch:saved-changed'));renderSaved();announce('Saved reports refreshed from the archive.');}}).catch(()=>announce('Could not refresh saved reports. Showing your offline copies.'));
  document.addEventListener('crimewatch:saved-changed',()=>syncAlerts().catch(()=>announce('Report saved locally. Alert watch list will sync when you reconnect.')));

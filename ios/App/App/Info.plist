@@ -26,7 +26,10 @@
 	<false/>
 	<key>UIUserInterfaceStyle</key>
 	<string>Dark</string>
-	<key>LSRequiresIPhoneOS</key>
+	<key>NSLocationWhenInUseUsageDescription</key><string>Show your position on the crime map and, if you choose, update the area used for nearby alerts.</string>
+<key>NSLocationAlwaysAndWhenInUseUsageDescription</key><string>When you enable background location alerts, update your approximate alert area as you move, even when CrimeWatch is not open.</string>
+<key>UIBackgroundModes</key><array><string>location</string></array>
+<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
