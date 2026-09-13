@@ -2,6 +2,7 @@
 declare(strict_types=1);
 if(PHP_SAPI!=='cli')exit;
 require __DIR__.'/core.php';
+check((curl_version()['features'] & CURL_VERSION_HTTP2)!==0,'APNs requires HTTP/2 support');
 function check($yes,$message){if(!$yes)throw new RuntimeException($message);}
 $temp=sys_get_temp_dir().'/crimewatch-alert-test-'.bin2hex(random_bytes(8));putenv('CRIMEWATCH_ALERT_DATA='.$temp);
 $db=ca_db();$a=new PDO('sqlite::memory:');$a->exec('CREATE TABLE incidents(id TEXT,agency TEXT,date TEXT,time TEXT,offense TEXT,category TEXT,location TEXT,lat REAL,lng REAL,details TEXT)');

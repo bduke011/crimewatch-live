@@ -22,6 +22,7 @@ try{
  }
  if(($input['action']??'')!=='save')throw new InvalidArgumentException('Unknown action.');
  $s=ca_settings($input['settings']??[]);$token=$input['token']??'';if(!is_string($token)||!preg_match('/^[a-fA-F0-9]{32,512}$/',$token))throw new InvalidArgumentException('Invalid notification token.');$token=strtolower($token);
+ if($s['enabled']&&!is_file(__DIR__.'/config.json')){$db->rollBack();http_response_code(503);echo '{"error":"Notification delivery is not configured yet"}';exit;}
  $ids=$input['watched']??[];if(!is_array($ids)||count($ids)>100)throw new InvalidArgumentException('Too many watched reports.');foreach($ids as $rid)if(!is_string($rid)||!preg_match('/^[a-zA-Z0-9_-]{1,100}$/',$rid))throw new InvalidArgumentException('Invalid watched report.');
  $identity=null;$seq=ca_seq($db);
  if(!$d){
