@@ -29,10 +29,12 @@ after Apple finishes processing. No workflow submits a public App Store release.
 
 The Codemagic integration named `Scan2Profit` supplies the existing Apple account
 authentication and distribution certificate. CrimeWatch uses its own provisioning
-profile `crimewatch_appstore_profile`; its app identity is separate from Scan2Profit.
+profile `crimewatch_push_appstore_profile`; its app identity is separate from Scan2Profit.
 App creation in the App Store Connect website is required before the first upload.
 
-This first version has no push alerts, accounts, advertising, or location permission.
+Optional push alerts are controlled in Settings. Nearby reports use a manually selected center, radius, agency, and categories. Daily summaries use the device time zone and chosen hour. Saved-report alerts watch published content changes. Alerts start off; each type and the master switch can be disabled. No accounts, advertising, or device location permission are used.
+
+`services/alerts/` contains the private PHP/SQLite notification service and its tests. Deploy this directory outside the document root as `/home1/crimewatch/alerts-service`; only `public/alerts-api.php` is public. The existing incident archive is read, never modified. A 5-minute cron scans changes and delivers through APNs. A production, topic-specific APNs key for `live.crimewatch.app` and a private `config.json` are required. Never commit either. Server tests: `php services/alerts/tests.php`.
 Saved reports work offline; live searching and map tiles require connectivity.
 
 ## Layout

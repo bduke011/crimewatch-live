@@ -12,9 +12,11 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/ionic-team/capacitor-swift-pm.git", exact: "8.4.3"),
+        .package(name: "CapacitorApp", path: "..\..\..\node_modules\@capacitor\app"),
         .package(name: "CapacitorBrowser", path: "..\..\..\node_modules\@capacitor\browser"),
-        .package(name: "CapacitorShare", path: "..\..\..\node_modules\@capacitor\share"),
-        .package(name: "CapacitorPreferences", path: "..\..\..\node_modules\@capacitor\preferences")
+        .package(name: "CapacitorPreferences", path: "..\..\..\node_modules\@capacitor\preferences"),
+        .package(name: "CapacitorPushNotifications", path: "..\..\..\node_modules\@capacitor\push-notifications"),
+        .package(name: "CapacitorShare", path: "..\..\..\node_modules\@capacitor\share")
     ],
     targets: [
         .target(
@@ -22,9 +24,11 @@ let package = Package(
             dependencies: [
                 .product(name: "Capacitor", package: "capacitor-swift-pm"),
                 .product(name: "Cordova", package: "capacitor-swift-pm"),
+                .product(name: "CapacitorApp", package: "CapacitorApp"),
                 .product(name: "CapacitorBrowser", package: "CapacitorBrowser"),
-                .product(name: "CapacitorShare", package: "CapacitorShare"),
-                .product(name: "CapacitorPreferences", package: "CapacitorPreferences")
+                .product(name: "CapacitorPreferences", package: "CapacitorPreferences"),
+                .product(name: "CapacitorPushNotifications", package: "CapacitorPushNotifications"),
+                .product(name: "CapacitorShare", package: "CapacitorShare")
             ]
         )
     ]

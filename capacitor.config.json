@@ -1,1 +1,1 @@
-{"appId":"live.crimewatch.app","appName":"CrimeWatch","webDir":"dist-mobile","ios":{"contentInset":"never","backgroundColor":"#080e18"},"plugins":{"CapacitorHttp":{"enabled":true}}}
+{"appId":"live.crimewatch.app","appName":"CrimeWatch","webDir":"dist-mobile","ios":{"contentInset":"never","backgroundColor":"#080e18"},"plugins":{"CapacitorHttp":{"enabled":true},"PushNotifications":{"presentationOptions":["sound","alert"]}}}

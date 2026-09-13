@@ -30,3 +30,8 @@ node_modules/
 dist-mobile/
 mobile/assets/
 .DS_Store
+
+# Notification credentials and runtime state
+*.p8
+services/alerts/config.json
+services/alerts/worker.lock

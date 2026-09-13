@@ -12,7 +12,7 @@ workflows:
         certificates:
           - scan2profit_appstore
         provisioning_profiles:
-          - crimewatch_appstore_profile
+          - crimewatch_push_appstore_profile
     scripts:
       - name: Install dependencies
         script: npm ci
@@ -62,7 +62,7 @@ workflows:
         certificates:
           - scan2profit_appstore
         provisioning_profiles:
-          - crimewatch_appstore_profile
+          - crimewatch_push_appstore_profile
     scripts:
       - name: Install dependencies
         script: npm ci
