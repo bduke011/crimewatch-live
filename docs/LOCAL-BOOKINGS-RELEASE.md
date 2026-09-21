@@ -33,3 +33,7 @@ Validation: six PHP/SQLite integration tests with synthetic records cover pagina
 ## Research stays inside CrimeWatch
 
 Per the owner’s updated direction, removed iDocket and all outbound court-research cards, links and copy-for-portal controls from the website and mobile bundle. Connected booking results and full booking details remain internal. Court history is marked "Not connected" until a suitable data connection can display results within CrimeWatch. iDocket is excluded from future integration work because of cost. Historical descriptions above describe earlier iterations.
+
+## September 21 court lookup import
+
+Added the owner-supplied court lookup collection to local person research. Imported 36 summaries (35 searchable, one ambiguous identity held), with source dates, case-reference validation and a booking-date conflict indicator. This replaces the "Not connected" placeholder with saved lookup results, not a live court search. An hourly private importer accepts future completed JSON exports and maintains a pending queue. It does not scrape the portal. See COURT-IMPORTS.md for the input format, server paths, limitations and validation.

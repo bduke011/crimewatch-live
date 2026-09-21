@@ -29,3 +29,7 @@ The owner has excluded iDocket because of cost and wants research results displa
 CrimeWatch searches its connected Polk booking archive and current roster automatically and displays results and full booking details within the site/app. Court history is explicitly marked "Not connected". References and hearing dates in booking data must not be presented as court-history search results.
 
 For future court data, investigate direct public court exports or approved integrations that can display results inside CrimeWatch. Prefer no-cost sources and confirm any fees with the owner before making commitments. An embedded external website does not satisfy this requirement. No direct Polk court-data feed is confirmed yet.
+
+## September 21 update
+
+Owner-supplied court lookup summaries are now imported locally and searchable alongside bookings. The court-not-connected description above is superseded for this limited saved collection. Live court history and automated portal collection remain unconnected. See COURT-IMPORTS.md.
