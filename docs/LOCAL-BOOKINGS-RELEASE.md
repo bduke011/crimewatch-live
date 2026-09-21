@@ -21,3 +21,11 @@ Deployment used existing HostGator/cPanel hosting and preserved live public file
 ## Photo repair
 
 Recovered the deployed roster collector into this repository. Fixed the released-list sort callback to encode each DevExpress argument separately. Retry missing photos on recent released records after the detail refresh interval, while respecting takedowns. Photo links now attach immediately after PDF import. New links require a unique name, suffix, age and booking-date match. Cards explicitly show “Photo unavailable” when no image is returned. Regression tests cover sort and pagination encoding, missing-photo retry eligibility, takedowns and ambiguous identity matches.
+
+## Person research workspace
+
+Bookings now link to a workspace with a stable starting-record reference. A single name search queries the connected booking archive and current roster independently, with per-source results, update times, archive coverage, pagination and retry states. Searches use name fields only and allow reordered or partial names. Results are possible matches; users select records after reviewing identifiers. Selections exist only on the current page and clear on reload or a new search.
+
+The new read-only research API excludes takedowns, limits result pages and distinguishes unavailable sources from successful searches with no results. Court portals remain separate manual sources. iDocket is included with its published Polk coverage limitation, and links to court coverage dates. See COURT-DATA-ACCESS.md for API research and an unsent vendor inquiry.
+
+Validation: six PHP/SQLite integration tests with synthetic records cover pagination, name order, custody, removed records, input validation, missing sources and stale/incomplete collection states. Eight mobile tests and Capacitor sync pass. Browser checks cover starting-booking lookup, both source results, reviewed selection/reset, exact archive record links, empty results and a 390px phone layout. Native signing and installation still require Xcode.

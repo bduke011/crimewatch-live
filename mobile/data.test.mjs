@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {apiURL,normalizeSaved,toggleSaved,shareText} from './data.mjs';
 test('routes bundled PHP requests to production and preserves encoded filters',()=>{
+ assert.equal(apiURL('research-api.php?name=Smith&source=archive','capacitor://localhost/research.html'),'https://crimewatch.live/research-api.php?name=Smith&source=archive');
  assert.equal(apiURL('api.php?q=A%26B&agency=polk','capacitor://localhost/index.html'),'https://crimewatch.live/api.php?q=A%26B&agency=polk');
  assert.equal(apiURL('jail-api.php?page=2'),'https://crimewatch.live/jail-api.php?page=2');
  assert.equal(apiURL('roster-api.php?q=A%26B','capacitor://localhost/roster.html'),'https://crimewatch.live/roster-api.php?q=A%26B');
