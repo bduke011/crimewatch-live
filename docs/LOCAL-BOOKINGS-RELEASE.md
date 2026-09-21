@@ -17,3 +17,7 @@ Verified: eight Node tests, Python schema regression test against original and e
 Not included: additional county ingestion, automated court imports, bondsman accounts, private notes, subscription billing, or new booking/court alerts. Existing saved incident reports and alert implementation are retained. The iPhone project is synchronized, but no signed Xcode/TestFlight/App Store release was performed in this update.
 
 Deployment used existing HostGator/cPanel hosting and preserved live public files in the task's `work/live-backup` directory before changes. No credentials, booking databases, or PDFs are included in this repository or source ZIP. The temporary recovery job was removed after successful collection; existing collection schedules remain in place.
+
+## Photo repair
+
+Recovered the deployed roster collector into this repository. Fixed the released-list sort callback to encode each DevExpress argument separately. Retry missing photos on recent released records after the detail refresh interval, while respecting takedowns. Photo links now attach immediately after PDF import. New links require a unique name, suffix, age and booking-date match. Cards explicitly show “Photo unavailable” when no image is returned. Regression tests cover sort and pagination encoding, missing-photo retry eligibility, takedowns and ambiguous identity matches.

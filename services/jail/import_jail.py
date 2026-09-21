@@ -102,6 +102,11 @@ def run():
                 db.execute('INSERT OR REPLACE INTO sources VALUES(?,?,?,?)',(url,digest,now,len(rows)))
             processed+=1;print(json.dumps({'date':report_date,'records':len(rows)}),flush=True)
         except Exception as e:errors.append({'url':url,'error':str(e)});print(str(e),file=sys.stderr,flush=True)
+    # Attach already collected roster photos immediately, without waiting for
+    # the next roster collection after new PDF bookings are imported.
+    if db.execute("SELECT count(*) FROM sqlite_master WHERE type='table' AND name='roster'").fetchone()[0]:
+        from roster import link_bookings
+        with db:link_bookings(db)
     status={'parserVersion':2,'checkedAt':datetime.datetime.now(datetime.timezone.utc).isoformat(),'processed':processed,'linkedReports':len(urls),'failedReports':len(errors),'errors':errors,'total':db.execute('SELECT count(*) FROM bookings').fetchone()[0]}
     (ROOT/'status.json').write_text(json.dumps(status,indent=2));db.execute('PRAGMA wal_checkpoint(TRUNCATE)');db.close();print(json.dumps({k:v for k,v in status.items() if k!='errors'}))
     if errors:sys.exit(1)
