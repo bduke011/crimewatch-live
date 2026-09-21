@@ -47,7 +47,17 @@ function nw_database(): PDO {
     }
     return $db;
 }
+function nw_validate_snapshot(array $snapshot): void {
+    if (!isset($snapshot['incidents']) || !is_array($snapshot['incidents'])) throw new RuntimeException('Invalid incident snapshot.');
+    if ($snapshot['incidents']) return;
+    // The public feed occasionally returns valid XML with no markers during an outage.
+    // An empty response cannot confirm that every previously published report was removed.
+    $known=nw_database()->prepare("SELECT 1 FROM incidents WHERE agency='polk' AND date BETWEEN ? AND ? LIMIT 1");
+    $known->execute([$snapshot['range']['start'],$snapshot['range']['end']]);
+    if ($known->fetchColumn()) throw new RuntimeException('Empty incident response conflicts with saved reports; retaining the last successful collection.');
+}
 function nw_archive_snapshot(array $snapshot, bool $historical=false): void {
+    nw_validate_snapshot($snapshot);
     $db=nw_database();
     $at=$snapshot['fetchedAt'];
     $last=$db->query("SELECT value FROM collection_state WHERE name='fetchedAt'")->fetchColumn();

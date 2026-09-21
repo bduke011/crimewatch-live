@@ -64,7 +64,12 @@ function nw_cached(): array {
     $directory=nw_data_directory();
     if (!is_dir($directory) && !mkdir($directory,0750,true)) throw new RuntimeException('Cache directory unavailable.');
     $file=$directory.'/incidents.json';
-    $read=function() use ($file) {return is_file($file) ? json_decode((string)file_get_contents($file),true) : null;};
+    $read=function() use ($file) {
+        $cached=is_file($file) ? json_decode((string)file_get_contents($file),true) : null;
+        if (!is_array($cached)) return null;
+        try {nw_validate_snapshot($cached);return $cached;}
+        catch(Throwable $e) {error_log('CrimeWatch cache rejected: '.$e->getMessage());return null;}
+    };
     $data=$read();$slot=nw_latest_collection_slot();
     if ($data && (strtotime($data['fetchedAt'] ?? '') ?: 0)>=$slot->getTimestamp()) {nw_archive_snapshot($data);return $data;}
     $lock=fopen($directory.'/refresh.lock','c');
