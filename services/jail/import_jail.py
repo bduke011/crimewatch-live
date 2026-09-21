@@ -97,7 +97,7 @@ def run():
             with db:
                 for r in rows:
                     payload=json.dumps(r,ensure_ascii=False);rh=hashlib.sha256(payload.encode()).hexdigest();search=r['name']+' '+r['locality']+' '+json.dumps(r['arrests'],ensure_ascii=False)
-                    db.execute('''INSERT INTO bookings VALUES(?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET released=COALESCE(excluded.released,bookings.released),details=excluded.details,search_text=excluded.search_text,last_seen=excluded.last_seen,report_date=excluded.report_date WHERE excluded.report_date>=bookings.report_date''',(r['id'],r['name'],r['age'],r['booked'],r['released'],r['locality'],json.dumps(r['arrests']),search,now,now,report_date))
+                    db.execute('''INSERT INTO bookings(id,name,age,booked,released,locality,details,search_text,first_seen,last_seen,report_date) VALUES(?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET released=COALESCE(excluded.released,bookings.released),details=excluded.details,search_text=excluded.search_text,last_seen=excluded.last_seen,report_date=excluded.report_date WHERE excluded.report_date>=bookings.report_date''',(r['id'],r['name'],r['age'],r['booked'],r['released'],r['locality'],json.dumps(r['arrests']),search,now,now,report_date))
                     db.execute('INSERT OR IGNORE INTO versions VALUES(?,?,?,?)',(r['id'],rh,now,payload))
                 db.execute('INSERT OR REPLACE INTO sources VALUES(?,?,?,?)',(url,digest,now,len(rows)))
             processed+=1;print(json.dumps({'date':report_date,'records':len(rows)}),flush=True)

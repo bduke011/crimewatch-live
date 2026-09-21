@@ -4,6 +4,7 @@ import {apiURL,normalizeSaved,toggleSaved,shareText} from './data.mjs';
 test('routes bundled PHP requests to production and preserves encoded filters',()=>{
  assert.equal(apiURL('api.php?q=A%26B&agency=polk','capacitor://localhost/index.html'),'https://crimewatch.live/api.php?q=A%26B&agency=polk');
  assert.equal(apiURL('jail-api.php?page=2'),'https://crimewatch.live/jail-api.php?page=2');
+ assert.equal(apiURL('roster-api.php?q=A%26B','capacitor://localhost/roster.html'),'https://crimewatch.live/roster-api.php?q=A%26B');
  assert.equal(apiURL('fbi-api.php?year=2024'),'https://crimewatch.live/fbi-api.php?year=2024');
  assert.equal(apiURL('https://example.com/api.php'),'https://example.com/api.php');
  assert.equal(apiURL('vendor/leaflet/leaflet.css','capacitor://localhost/index.html'),'capacitor://localhost/vendor/leaflet/leaflet.css');

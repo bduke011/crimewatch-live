@@ -17,7 +17,7 @@ function announce(message){const el=document.getElementById('mobileStatus');if(e
 async function share(record){try{await Share.share({title:'CrimeWatch reported incident',text:shareText(record),dialogTitle:'Share report'});}catch(e){if(!/cancel|dismiss/i.test(String(e)))announce('Sharing is unavailable. Try again from your iPhone.');}}
 function renderSaved(){
  const list=document.getElementById('savedList');if(!list)return;
- list.innerHTML=saved.length?saved.map(r=>`<article class="saved-card"><span class="mobile-eyebrow">SAVED ${esc(new Date(r.savedAt).toLocaleDateString())}</span><h2>${esc(r.offense)}</h2><p>${esc(r.date)} · ${esc(r.agencyLabel)}</p><p>${esc(r.location)}</p><p class="saved-context">${r.refreshedAt?'Refreshed from the archive.':'Saved copy; the source may have changed.'} A report does not establish guilt.</p><div class="saved-actions"><button data-saved-share="${esc(r.id)}">Share</button><button data-saved-remove="${esc(r.id)}">Remove</button></div></article>`).join(''):'<div class="saved-empty"><span aria-hidden="true">☆</span><h2>Keep a report handy</h2><p>Open an incident and tap Save report. Your saved copies stay on this device and are available offline.</p><a href="index.html">Explore incidents →</a></div>';
+ list.innerHTML=saved.length?saved.map(r=>`<article class="saved-card"><span class="mobile-eyebrow">SAVED ${esc(new Date(r.savedAt).toLocaleDateString())}</span><h2>${esc(r.offense)}</h2><p>${esc(r.date)} · ${esc(r.agencyLabel)}</p><p>${esc(r.location)}</p><p class="saved-context">${r.refreshedAt?'Refreshed from the archive.':'Saved copy; the source may have changed.'} A report does not establish guilt.</p><div class="saved-actions"><button data-saved-share="${esc(r.id)}">Share</button><button data-saved-remove="${esc(r.id)}">Remove</button></div></article>`).join(''):'<div class="saved-empty"><span aria-hidden="true">☆</span><h2>Keep a report handy</h2><p>Open an incident and tap Save report. Your saved copies stay on this device and are available offline.</p><a href="incidents.html">Explore incidents →</a></div>';
 }
 document.addEventListener('crimewatch:detail',async event=>{
  selected=event.detail;await ready;
@@ -31,7 +31,7 @@ document.addEventListener('crimewatch:detail',async event=>{
 document.addEventListener('DOMContentLoaded',async()=>{
  document.body.classList.add('mobile-app');
  const page=location.pathname.split('/').pop()||'index.html';
- const tabs=[['index.html','◎','Explore'],['jail.html','▤','Bookings'],['fbi.html','▥','FBI data'],['saved.html','☆','Saved'],['settings.html','⚙','Settings']];
+ const tabs=[['index.html','◎','Home'],['roster.html','▤','Roster'],['research.html','⌕','Research'],['saved.html','☆','Saved'],['settings.html','⚙','Settings']];
  const nav=document.createElement('nav');nav.className='mobile-tabs';nav.setAttribute('aria-label','App navigation');
  nav.innerHTML=tabs.map(([url,icon,label])=>`<a href="${url}" ${page===url||page==='fbi-collections.html'&&url==='fbi.html'?'aria-current="page"':''}><span aria-hidden="true">${icon}</span>${label}</a>`).join('');document.body.append(nav);
  const status=document.createElement('p');status.id='mobileStatus';status.setAttribute('role','status');status.className='mobile-status';document.body.append(status);
