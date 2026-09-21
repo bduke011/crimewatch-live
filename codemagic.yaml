@@ -23,7 +23,9 @@ workflows:
       - name: Set build number
         script: |
           cd ios/App
-          agvtool new-version -all "$((BUILD_NUMBER + 1))"
+          LATEST=$(app-store-connect get-latest-testflight-build-number 6811481294)
+          [[ "$LATEST" =~ ^[0-9]+$ ]] || { echo "Could not read the latest Apple build number"; exit 1; }
+          agvtool new-version -all "$((LATEST + 1))"
       - name: Apply signing profile
         script: xcode-project use-profiles
       - name: Build signed iPhone app
@@ -68,16 +70,22 @@ workflows:
         script: npm ci
       - name: Test and bundle iPhone app
         script: npm test && npm run ios:sync
+      - name: Run on iPhone simulator
+        script: bash mobile/simulator-smoke.sh
       - name: Set build number
         script: |
           cd ios/App
-          agvtool new-version -all "$((BUILD_NUMBER + 1))"
+          LATEST=$(app-store-connect get-latest-testflight-build-number 6811481294)
+          [[ "$LATEST" =~ ^[0-9]+$ ]] || { echo "Could not read the latest Apple build number"; exit 1; }
+          agvtool new-version -all "$((LATEST + 1))"
       - name: Apply signing profile
         script: xcode-project use-profiles
       - name: Build signed iPhone app
         script: xcode-project build-ipa --project ios/App/App.xcodeproj --scheme App
     artifacts:
       - build/ios/ipa/*.ipa
+      - build/iphone-launch.png
+      - build/simulator-compile.log
       - /tmp/xcodebuild_logs/*.log
     publishing:
       app_store_connect:

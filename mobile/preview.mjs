@@ -4,7 +4,7 @@ import {resolve,extname} from 'node:path';
 const root=resolve('dist-mobile');
 createServer(async(req,res)=>{try{
  const url=new URL(req.url,'http://localhost');
- if(/^\/(api|jail-api|fbi-api|fbi-extra-api)\.php$/.test(url.pathname)){
+ if(/^\/(api|jail-api|roster-api|research-api|court-api|fbi-api|fbi-extra-api)\.php$/.test(url.pathname)){
   const response=await fetch('https://crimewatch.live'+url.pathname+url.search);res.writeHead(response.status,{'Content-Type':'application/json'});res.end(await response.text());return;
  }
  const path=resolve(root,'.'+(url.pathname==='/'?'/index.html':decodeURIComponent(url.pathname)));

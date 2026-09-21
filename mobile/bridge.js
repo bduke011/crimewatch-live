@@ -31,7 +31,7 @@ document.addEventListener('crimewatch:detail',async event=>{
 document.addEventListener('DOMContentLoaded',async()=>{
  document.body.classList.add('mobile-app');
  const page=location.pathname.split('/').pop()||'index.html';
- const tabs=[['index.html','◎','Home'],['roster.html','▤','Roster'],['research.html','⌕','Research'],['saved.html','☆','Saved'],['settings.html','⚙','Settings']];
+ const tabs=[['index.html','◎','Home'],['roster.html','▤','Roster'],['research.html','⌕','Courts'],['saved.html','☆','Saved'],['settings.html','⚙','Settings']];
  const nav=document.createElement('nav');nav.className='mobile-tabs';nav.setAttribute('aria-label','App navigation');
  nav.innerHTML=tabs.map(([url,icon,label])=>`<a href="${url}" ${page===url||page==='fbi-collections.html'&&url==='fbi.html'?'aria-current="page"':''}><span aria-hidden="true">${icon}</span>${label}</a>`).join('');document.body.append(nav);
  const status=document.createElement('p');status.id='mobileStatus';status.setAttribute('role','status');status.className='mobile-status';document.body.append(status);
