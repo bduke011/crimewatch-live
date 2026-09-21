@@ -29,3 +29,7 @@ Bookings now link to a workspace with a stable starting-record reference. A sing
 The new read-only research API excludes takedowns, limits result pages and distinguishes unavailable sources from successful searches with no results. Court portals remain separate manual sources. iDocket is included with its published Polk coverage limitation, and links to court coverage dates. See COURT-DATA-ACCESS.md for API research and an unsent vendor inquiry.
 
 Validation: six PHP/SQLite integration tests with synthetic records cover pagination, name order, custody, removed records, input validation, missing sources and stale/incomplete collection states. Eight mobile tests and Capacitor sync pass. Browser checks cover starting-booking lookup, both source results, reviewed selection/reset, exact archive record links, empty results and a 390px phone layout. Native signing and installation still require Xcode.
+
+## Research stays inside CrimeWatch
+
+Per the owner’s updated direction, removed iDocket and all outbound court-research cards, links and copy-for-portal controls from the website and mobile bundle. Connected booking results and full booking details remain internal. Court history is marked "Not connected" until a suitable data connection can display results within CrimeWatch. iDocket is excluded from future integration work because of cost. Historical descriptions above describe earlier iterations.

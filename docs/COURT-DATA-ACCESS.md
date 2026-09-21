@@ -2,7 +2,7 @@
 
 Checked September 20, 2026. These findings describe available public information, not a completed vendor integration or a data license.
 
-## iDocket
+## iDocket — excluded from the product
 
 No public developer API documentation or self-service data-feed signup was located on iDocket's official site. This does not establish that a private or commercial API is unavailable. Ordinary search subscriptions do not establish permission for automated collection or redistribution.
 
@@ -14,7 +14,7 @@ Official contacts: sales@idocket.com, support@idocket.com, 1-800-436-2538 ext. 2
 
 ## Tyler and direct court sources
 
-The [Polk Tyler Portal](https://portal-txpolk.tylertech.cloud/Portal/) is linked by the [county District Attorney](https://www.polktx.gov/318/Criminal-District-Attorney). Its public case-index search uses human verification. Additional events, orders and documents depend on the user's access. CrimeWatch currently opens this portal for manual research.
+The [Polk Tyler Portal](https://portal-txpolk.tylertech.cloud/Portal/) is linked by the [county District Attorney](https://www.polktx.gov/318/Criminal-District-Attorney). Its public case-index search uses human verification. Additional events, orders and documents depend on the user's access. CrimeWatch does not link users out to this portal. An approved data connection would be needed to show these records inside the app.
 
 Tyler serves many jurisdictions, but a county's portal is not automatically a statewide search. [re:SearchTX](https://research.txcourts.gov/) is a separate broader Texas research option, linked by the [Polk District Clerk](https://www.polktx.gov/317/District-Clerk). Check participating court, case type, historical coverage and access level; do not claim that it supplies every criminal case or a complete criminal history.
 
@@ -22,22 +22,10 @@ Tyler advertises APIs through its [Enterprise Justice Integration Portal](https:
 
 For records missing from portals, the relevant County or District Clerk is the direct source. Ask whether an existing public-record export or recurring data service is available, including its fields, dates, fees and permitted uses. No recurring export for Polk has yet been confirmed.
 
-## Inquiry prepared for iDocket (not sent)
-
-Subject: Commercial court-data API or licensed feed for CrimeWatch.live
-
-We are developing CrimeWatch.live, an application that helps users research public bookings and helps bail bond agents review public court records. Do you offer an API, bulk export or licensed recurring feed for a third-party commercial application?
-
-Please provide:
-
-1. API or feed documentation, sandbox availability, authentication, and search/rate limits.
-2. Current criminal-case coverage by county and court, including misdemeanor/felony coverage, earliest records, latest updates, and Polk County's current status.
-3. Availability of case numbers, parties, charges, dispositions, hearings, bonds, documented failures to appear and public documents, plus identifiers suitable for human identity review.
-4. Pricing and terms for displaying records to our users, caching, retention, attribution, correction/removal handling, and whether each user needs an individual iDocket subscription.
-5. Update intervals, outage reporting, and how amended or removed records are communicated.
-
-No vendor contact, purchase, account creation, or automated portal collection has been performed.
-
 ## Implementation decision
 
-CrimeWatch searches its connected Polk booking archive and current roster automatically. Court systems appear separately as manual external sources. Build additional county connections only after verifying source coverage and access. Prefer a licensed API/feed for automated court imports; do not base the application on bypassing portal challenges.
+The owner has excluded iDocket because of cost and wants research results displayed inside CrimeWatch. Do not add outbound court-research links or an iDocket integration. No vendor inquiry was sent and no subscription was purchased.
+
+CrimeWatch searches its connected Polk booking archive and current roster automatically and displays results and full booking details within the site/app. Court history is explicitly marked "Not connected". References and hearing dates in booking data must not be presented as court-history search results.
+
+For future court data, investigate direct public court exports or approved integrations that can display results inside CrimeWatch. Prefer no-cost sources and confirm any fees with the owner before making commitments. An embedded external website does not satisfy this requirement. No direct Polk court-data feed is confirmed yet.
