@@ -1,7 +1,7 @@
 """Import owner-supplied court lookup snapshots; never contacts court portals.
 
 Raw exports, review notes and descriptors remain in private server storage.
-The public representation contains only lookup summaries and case references.
+The public representation includes lookup summaries and structured case-index rows.
 """
 import argparse
 import datetime as dt
@@ -36,6 +36,10 @@ def schema(db):
       UNIQUE(name_key,booked,source));
     CREATE TABLE IF NOT EXISTS court_suppressions (lookup_id TEXT PRIMARY KEY, reason TEXT, suppressed_at TEXT);
     CREATE INDEX IF NOT EXISTS court_name_key ON court_lookups(name_key);
+    CREATE TABLE IF NOT EXISTS court_case_sets (
+      lookup_id TEXT PRIMARY KEY, cases_json TEXT NOT NULL, record_complete INTEGER NOT NULL,
+      observed_date TEXT NOT NULL, source_timestamp TEXT NOT NULL, imported_at TEXT NOT NULL,
+      batch_digest TEXT NOT NULL);
     ''')
 
 def validate(payload):
@@ -85,6 +89,9 @@ def import_file(db, path):
     raw = Path(path).read_bytes()
     if len(raw)>20_000_000: raise ValueError('Export too large')
     payload = json.loads(raw)
+    if payload.get('dataset') == 'crimewatch_polk_court_cases_detail':
+        from court_details import import_details
+        return import_details(db, path, raw, payload)
     records = validate(payload)
     digest = hashlib.sha256(raw).hexdigest()
     if db.execute('SELECT 1 FROM court_batches WHERE digest=?',(digest,)).fetchone():
@@ -99,7 +106,8 @@ def import_file(db, path):
              VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)
              ON CONFLICT(id) DO UPDATE SET name=excluded.name,cases_total=excluded.cases_total,
              grouped_cases=excluded.grouped_cases,references_json=excluded.references_json,
-             rejected_references=excluded.rejected_references,review_state=excluded.review_state,
+             rejected_references=excluded.rejected_references,
+             review_state=CASE WHEN court_lookups.review_state='held' THEN 'held' ELSE excluded.review_state END,
              observed_date=excluded.observed_date,source_timestamp=excluded.source_timestamp,
              imported_at=excluded.imported_at,batch_digest=excluded.batch_digest''', (*r,now(),digest))
             written += 1

@@ -89,6 +89,67 @@ class CourtImport(unittest.TestCase):
         self.payload['generated']='2026-09-21T02:00:00';self.ingest()
         self.assertEqual(self.api(name='Example')[1]['total'],0)
 
+    def detailed_payload(self):
+        return {'dataset':'crimewatch_polk_court_cases_detail','generated':'2026-09-21T01:43:02',
+          'source':court.SOURCE,'people':[{'roster_name':'Example, Alex','booked':'2026-09-19',
+          'record_complete':False,'cases':[
+           {'case_number':'CR26-0001','style_defendant':'EXAMPLE, ALEX','party_name':'ALEX EXAMPLE',
+            'file_date':'2026-09-01','case_type':'Felony Indictment','status':'Disposed',
+            'subject_is_defendant':True,'is_live':False},
+           {'case_number':'CR26-0002','style_defendant':'OTHER, SAM','party_name':'OTHER, SAM',
+            'file_date':'2026-09-02','case_type':'Felony Indictment','status':'Active',
+            'subject_is_defendant':False,'is_live':True},
+           {'case_number':'CIV123','style_defendant':'Civil example','party_name':'EXAMPLE, ALEX',
+            'file_date':'2025-09-02','case_type':'Motor Vehicle Accident','status':'Disposed',
+            'subject_is_defendant':True,'is_live':False}]}]}
+
+    def test_case_index_import_groups_and_repeated_batches(self):
+        self.ingest();self.payload=self.detailed_payload()
+        self.assertEqual(self.ingest()['case_rows'],3)
+        self.assertTrue(self.ingest()['duplicate'])
+        status,data=self.api(name='Example')
+        self.assertEqual(status,200);r=data['records'][0]
+        self.assertEqual({c['case_number']:c['group'] for c in r['cases']},
+                         {'CR26-0001':'criminal','CR26-0002':'other_party','CIV123':'civil_other'})
+        self.assertFalse(r['record_complete'])
+        self.assertEqual(next(c for c in r['cases'] if c['case_number']=='CR26-0001')['status'],'Disposed')
+        self.assertNotIn('is_live',json.dumps(r))
+
+    def test_case_index_partial_update_and_older_file(self):
+        self.payload=self.detailed_payload();self.ingest()
+        self.payload['generated']='2026-09-21T01:44:02';self.payload['people'][0]['cases'][0]['status']='Dismissed'
+        self.ingest()
+        self.payload['generated']='2026-09-21T01:42:02';self.payload['people'][0]['cases'][0]['status']='Active'
+        self.assertEqual(self.ingest()['written'],0)
+        cases=self.api(name='Example')[1]['records'][0]['cases']
+        self.assertEqual(next(c for c in cases if c['case_number']=='CR26-0001')['status'],'Dismissed')
+
+    def test_bad_case_batch_is_atomic(self):
+        self.ingest();self.payload=self.detailed_payload()
+        self.payload['people'][0]['cases'][1]['file_date']='2026-02-30'
+        with self.assertRaises(ValueError):self.ingest()
+        self.assertEqual(self.db.execute('SELECT COUNT(*) FROM court_case_sets').fetchone()[0],0)
+        self.assertEqual(self.db.execute('SELECT cases_total FROM court_lookups').fetchone()[0],2)
+
+    def test_details_preserve_existing_identity_hold_and_suppression(self):
+        self.payload['records'][0]['notes']='TWO spellings - needs DOB match';self.ingest()
+        self.payload=self.detailed_payload();self.ingest()
+        self.assertEqual(self.api(name='Example')[1]['total'],0)
+        self.assertEqual(self.db.execute('SELECT COUNT(*) FROM court_case_sets').fetchone()[0],1)
+        self.db.execute("UPDATE court_lookups SET review_state='unverified'")
+        lookup=self.db.execute('SELECT id FROM court_lookups').fetchone()[0]
+        self.db.execute('INSERT INTO court_suppressions VALUES(?,?,?)',(lookup,'fixture',court.now()));self.db.commit()
+        self.payload['generated']='2026-09-21T01:44:02';self.ingest()
+        self.assertEqual(self.api(name='Example')[1]['total'],0)
+
+    def test_other_party_takedown_applies_to_case_details(self):
+        self.payload=self.detailed_payload();self.ingest()
+        self.db.execute("INSERT INTO roster VALUES('other','SAM OTHER','2026-09-19',1)")
+        self.db.execute("INSERT INTO takedowns VALUES('other')");self.db.commit()
+        r=self.api(name='Example')[1]['records'][0]
+        self.assertEqual(len(r['cases']),2)
+        self.assertNotIn('CR26-0002',json.dumps(r))
+
     def test_bad_batch_is_atomic(self):
         row=copy.deepcopy(self.payload['records'][0]);row['roster_name']='Other, Person';row['cases_total']=-1
         self.payload['records'].append(row);self.payload['record_count']=2
