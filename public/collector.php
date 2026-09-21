@@ -55,7 +55,7 @@ function nw_collect(?string $from=null, ?string $to=null,string $agencyId='PolkC
     try {
         $base='https://cc.southernsoftware.com/incidentpointmap/';
         $request($base.'index.php?AgencyID='.rawurlencode($agencyId));
-        $request($base.'index.php',$from===null?['begindate'=>'','enddate'=>'','customRadioInline1'=>'previous30days']:['begindate'=>(new DateTimeImmutable($start))->format('m/d/Y'),'enddate'=>(new DateTimeImmutable($end))->format('m/d/Y'),'customRadioInline1'=>'customDateRange']);
+        $request($base.'index.php',['begindate'=>(new DateTimeImmutable($start))->format('m/d/Y'),'enddate'=>(new DateTimeImmutable($end))->format('m/d/Y'),'customRadioInline1'=>'customDateRange']); // explicit dates: the vendor's previous30days shortcut has returned empty sets
         $rows=nw_parse($request($base.'google_getincidentpoints.php'),$start,$end,$agencyId);
     } finally {$ch = null;}
     return ['incidents'=>$rows,'fetchedAt'=>gmdate('c'),'range'=>['start'=>$start,'end'=>$end],'stale'=>false];

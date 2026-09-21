@@ -1,0 +1,32 @@
+'use strict';
+const $=id=>document.getElementById(id),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pretty=v=>String(v||'').toLowerCase().replace(/\b\w/g,c=>c.toUpperCase()).replace(/\bTx\b/g,'TX').replace(/\bIi\b/g,'II').replace(/\bIii\b/g,'III').replace(/\bPd\b/g,'PD').replace(/\bSo\b/g,'SO').replace(/\bDps\b/g,'DPS').replace(/\bJr\b/g,'Jr.');
+const TZ='America/Chicago';
+const todayISO=()=>new Intl.DateTimeFormat('en-CA',{timeZone:TZ,year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+const shift=(iso,n)=>{const d=new Date(iso+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10);};
+const longDate=iso=>new Date(iso+'T12:00:00Z').toLocaleDateString('en-US',{timeZone:'UTC',weekday:'long',month:'long',day:'numeric',year:'numeric'});
+const photo=(r,cls)=>r.photo_bid?`<img class="mug ${cls}" src="jail-photo.php?bid=${encodeURIComponent(r.photo_bid)}" alt="" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'mug none ${cls}'}))">`:`<div class="mug none ${cls}"></div>`;
+const town=r=>pretty((r.locality||'').replace(/\s+\d[\d-]*$/,''));
+let day=null,data=null,selected=0,controller=null;
+function charges(r){return r.arrests.flatMap(a=>a.charges.map(c=>({...c,agency:a.agency,dateTime:a.dateTime})));}
+async function fetchDay(iso,page){const p=new URLSearchParams({from:iso,to:iso,page:String(page||1)});const res=await fetch('jail-api.php?'+p,{signal:controller.signal});const j=await res.json();if(!res.ok)throw Error(j.error);return j;}
+async function load(iso,auto){controller?.abort();controller=new AbortController();$('notice').hidden=true;$('records').setAttribute('aria-busy','true');
+ try{let j=await fetchDay(iso,1);let records=j.records;for(let p=2;p<=j.pages&&p<=5;p++)records=records.concat((await fetchDay(iso,p)).records);
+ if(auto&&!records.length&&j.archive?.latest&&j.archive.latest<iso){$('notice').textContent=`The sheriff's report for ${longDate(iso)} hasn't been published yet. Showing the most recent report instead.`;$('notice').hidden=false;iso=j.archive.latest;j=await fetchDay(iso,1);records=j.records;for(let p=2;p<=j.pages&&p<=5;p++)records=records.concat((await fetchDay(iso,p)).records);}
+ day=iso;data={...j,records};history.replaceState(null,'',iso===shift(todayISO(),-1)?location.pathname:'?date='+iso);
+ const isYesterday=iso===shift(todayISO(),-1);
+ $('headline').innerHTML=(isYesterday?'Arrested <em>yesterday</em>':'Arrested on')+`<br>${esc(longDate(iso))}`;document.title=`Arrests ${longDate(iso)} — Polk County, TX — CrimeWatch`;
+ $('dayCount').textContent=records.length;$('dayNote').textContent=records.length===1?'person booked':'people booked';
+ $('checkedAt').textContent=j.checkedAt?'Report read '+new Date(j.checkedAt).toLocaleString('en-US',{timeZone:TZ,month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})+' CT':'';
+ $('datePick').value=iso;$('datePick').max=todayISO();$('datePick').min=j.archive?.earliest||'';
+ $('prevDay').href='?date='+shift(iso,-1);$('nextDay').href='?date='+shift(iso,1);$('nextDay').style.visibility=iso>=todayISO()?'hidden':'visible';$('prevDay').style.visibility=j.archive?.earliest&&iso<=j.archive.earliest?'hidden':'visible';
+ $('empty').hidden=!!records.length;$('empty').textContent=`No bookings were reported for ${longDate(iso)}.`;
+ $('cards').innerHTML=records.map((r,i)=>{const cs=charges(r);return`<button class="booking" data-record="${i}">${photo(r,'')}<div class="card-body"><div class="card-top"><span>${esc(pretty(cs[0]?.agency||'').replace(/\s*-\s*TX\d+$/,''))}</span><span class="record-mark">↗</span></div><h3>${esc(pretty(r.name))}</h3><p class="person">${r.age?'Age '+r.age+' · ':''}${esc(town(r))||'Residence not listed'}</p><div class="charge-list">${cs.slice(0,3).map(c=>`<p>${esc(c.description)}</p>`).join('')||'<p>Charges pending</p>'}${cs.length>3?`<small>+${cs.length-3} more</small>`:''}</div><div class="card-bottom"><span class="status ${r.released?'released':''}">${r.released?'Released '+esc(new Date(r.released+'T12:00:00Z').toLocaleDateString('en-US',{timeZone:'UTC',month:'short',day:'numeric'})):'In custody at report time'}</span><span>View record →</span></div></div></button>`;}).join('');
+ }catch(e){if(e.name==='AbortError')return;$('notice').textContent=e.message;$('notice').hidden=false;$('headline').textContent='Report unavailable';}finally{$('records').setAttribute('aria-busy','false');}}
+function show(i){const r=data.records[i];if(!r)return;selected=i;const cs=charges(r);
+ $('detailBody').innerHTML=`<div class="detail-top">${photo(r,'').replace('loading="lazy"','')}<div><h2 id="detailTitle">${esc(pretty(r.name))}</h2><p class="person">${r.age?'Age '+r.age+' · ':''}${esc(town(r))||'Residence not listed'}</p></div></div><div class="facts"><div><small>BOOKED</small><strong>${esc(longDate(r.booked))}</strong></div><div><small>STATUS</small><strong>${r.released?'Released '+esc(longDate(r.released)):'In custody when reported'}</strong></div><div><small>CHARGES</small><strong>${cs.length}</strong></div></div>${r.arrests.map(a=>`<p class="agency">${esc(pretty(a.agency))}</p><p class="arrest-date">Arrested ${esc(a.dateTime||'')}</p>${a.charges.map(c=>`<div class="charge"><h3>${esc(c.description)}</h3><dl><div><dt>Jurisdiction</dt><dd>${esc(c.jurisdiction||'—')}</dd></div><div><dt>Type</dt><dd>${esc(pretty(c.warrantType||'—'))}</dd></div><div><dt>Case / warrant</dt><dd>${esc(c.warrantNumber||'—')}</dd></div></dl></div>`).join('')}`).join('')}<p class="disclaimer">Transcribed from the Polk County Sheriff's Office booking report. A booking is an accusation, not a finding of guilt. Removal requests: editor@crimewatch.live.</p>`;
+ $('prevRecord').disabled=i===0;$('nextRecord').disabled=i===data.records.length-1;if(!$('detail').open)$('detail').showModal();$('detail').scrollTop=0;}
+$('cards').onclick=e=>{const b=e.target.closest('[data-record]');if(b)show(Number(b.dataset.record));};$('close').onclick=()=>$('detail').close();$('prevRecord').onclick=()=>show(selected-1);$('nextRecord').onclick=()=>show(selected+1);
+$('datePick').onchange=()=>{if($('datePick').value)load($('datePick').value,false);};
+$('prevDay').onclick=e=>{e.preventDefault();load(shift(day,-1),false);};$('nextDay').onclick=e=>{e.preventDefault();load(shift(day,1),false);};
+const want=new URLSearchParams(location.search).get('date');load(/^\d{4}-\d{2}-\d{2}$/.test(want||'')?want:shift(todayISO(),-1),!want);

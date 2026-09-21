@@ -1,0 +1,11 @@
+/* Shared header and footer for every CrimeWatch page. Loaded last so it wins over page styles. */
+.site-header{height:auto;min-height:66px;display:flex;align-items:center;justify-content:space-between;gap:24px;padding:0 28px;background:#091321;border-bottom:1px solid #2b4356;font-family:'DM Sans',Arial,sans-serif}
+.site-header .brand{display:flex;align-items:center;gap:0;margin:0;font-size:20px;font-weight:700;letter-spacing:2.4px;color:#eef5fa;text-decoration:none;white-space:nowrap}
+.site-header nav{display:flex;align-items:stretch;align-self:stretch;gap:0;margin:0;padding:0;font-size:13px}
+.site-header nav a,.site-header nav .text-btn{display:flex;align-items:center;padding:0 14px;margin:0;border:0;border-bottom:2px solid transparent;background:none;color:#a9bfce;font:inherit;font-size:13px;letter-spacing:.2px;text-decoration:none;cursor:pointer;transition:color .15s}
+.site-header nav a:hover,.site-header nav .text-btn:hover{color:#eef5fa}
+.site-header nav a.active{color:#72e5ec;border-bottom-color:#72e5ec}
+@media(max-width:760px){.site-header{flex-wrap:wrap;padding:12px 16px;row-gap:6px}.site-header nav{width:100%;overflow-x:auto;scrollbar-width:none;gap:4px}.site-header nav a,.site-header nav .text-btn{padding:8px 10px;white-space:nowrap}}
+footer{font-family:'DM Sans',Arial,sans-serif;font-size:11px;color:#87a0b2}
+footer a{color:#a9bfce}.site-header .county{font:11px ui-monospace,Consolas,monospace;letter-spacing:1px;color:#a9bfce;white-space:nowrap}
+@media(max-width:760px){.site-header .county{display:none}}
