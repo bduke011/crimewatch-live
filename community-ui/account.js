@@ -5,7 +5,7 @@ function render(){ $('signIn').hidden=!!reader||!!verifyToken;$('verify').hidden
 async function init(){try{const s=await api('session');reader=s.reader;render();}catch(e){message(e.message,true);}}
 $('signInForm').onsubmit=async ev=>{ev.preventDefault();const b=ev.target.querySelector('button');b.disabled=true;try{await api('request-link',{email:ev.target.elements.email.value,agree:ev.target.elements.agree.checked});message('Check your inbox for a sign-in link. It expires in 20 minutes. If it has not arrived, check your spam folder.');}catch(e){message(e.message,true);}finally{b.disabled=false;}};
 $('verifyButton').onclick=async()=>{$('verifyButton').disabled=true;try{const d=await api('verify',{token:verifyToken});reader=d.reader;render();message('Your email is verified. Welcome to Local CrimeWatch.');}catch(e){message(e.message,true);}finally{$('verifyButton').disabled=false;}};
-$('profileForm').onsubmit=async ev=>{ev.preventDefault();try{const d=await api('save',Object.fromEntries(new FormData(ev.target)));reader=d.reader;render();message('Your community has been saved.');}catch(e){message(e.message,true);}};
+$('profileForm').onsubmit=async ev=>{ev.preventDefault();try{const d=await api('save',Object.fromEntries(new FormData(ev.target)));reader=d.reader;render();location.replace('./');}catch(e){message(e.message,true);}};
 $('signOut').onclick=async()=>{try{await api('logout',{});location.href='account.php';}catch(e){message(e.message,true);}};
 $('deleteForm').onsubmit=async ev=>{ev.preventDefault();try{await api('delete',{confirm:ev.target.elements.confirm.value});location.href='account.php';}catch(e){message(e.message,true);}};
 init();

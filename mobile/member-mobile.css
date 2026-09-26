@@ -1,1 +1,3 @@
 body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);overscroll-behavior-y:none}header{height:auto;min-height:70px;padding-top:12px;padding-bottom:12px;gap:16px}input,select,textarea{font-size:16px!important}#profile h2{margin-top:28px;font-size:20px}#profile section button{margin:6px 6px 6px 0}.header-note{display:none}.reader-link{margin-left:auto}a,button{touch-action:manipulation}.member-mobile footer{padding-bottom:30px}#profile .narrow{margin-top:20px}
+
+#profileForm>button[type=submit]{display:block;width:100%;margin-top:24px}.continue-reports{display:block;text-align:center;margin:16px 0}#profileForm section{border-top:1px solid #dce3d8;margin-top:24px;padding-top:8px}
