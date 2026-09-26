@@ -1,6 +1,7 @@
 import UIKit
 import Capacitor
 import CoreLocation
+import Security
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -16,7 +17,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        CrimeWatchLocationMonitor.shared.restore()
+        CrimeWatchLocationMonitor.shared.configure(enabled: false, id: nil, secret: nil, requestPermission: false)
         return true
     }
 
@@ -132,5 +133,16 @@ public class CrimeWatchLocationPlugin: CAPPlugin, CAPBridgedPlugin {
 }
 
 class CrimeWatchViewController: CAPBridgeViewController {
-    override func capacitorDidLoad() { bridge?.registerPluginInstance(CrimeWatchLocationPlugin()) }
+    override func capacitorDidLoad() { bridge?.registerPluginInstance(CrimeWatchLocationPlugin()); bridge?.registerPluginInstance(CrimeWatchSessionPlugin()) }
+}
+
+@objc(CrimeWatchSessionPlugin)
+public class CrimeWatchSessionPlugin: CAPPlugin, CAPBridgedPlugin {
+ public let identifier = "CrimeWatchSessionPlugin"
+ public let jsName = "CrimeWatchSession"
+ public let pluginMethods: [CAPPluginMethod] = [CAPPluginMethod(name:"get",returnType:CAPPluginReturnPromise),CAPPluginMethod(name:"set",returnType:CAPPluginReturnPromise),CAPPluginMethod(name:"remove",returnType:CAPPluginReturnPromise)]
+ private var query: [String:Any] { [kSecClass as String:kSecClassGenericPassword,kSecAttrService as String:"live.crimewatch.app.member",kSecAttrAccount as String:"session"] }
+ @objc func get(_ call: CAPPluginCall) { var q=query;q[kSecReturnData as String]=true;q[kSecMatchLimit as String]=kSecMatchLimitOne;var item:CFTypeRef?;let status=SecItemCopyMatching(q as CFDictionary,&item);if status==errSecItemNotFound {call.resolve(["value":""]);return};guard status==errSecSuccess, let data=item as? Data else {call.reject("Unable to read secure sign-in storage");return};call.resolve(["value":String(data:data,encoding:.utf8) ?? ""])}
+ @objc func set(_ call: CAPPluginCall) {guard let value=call.getString("value"),value.count==64,let data=value.data(using:.utf8) else {call.reject("Invalid session");return};var q=query;SecItemDelete(q as CFDictionary);q[kSecValueData as String]=data;q[kSecAttrAccessible as String]=kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly;guard SecItemAdd(q as CFDictionary,nil)==errSecSuccess else {call.reject("Unable to save secure sign-in storage");return};call.resolve()}
+ @objc func remove(_ call: CAPPluginCall) {let status=SecItemDelete(query as CFDictionary);if status != errSecSuccess && status != errSecItemNotFound {call.reject("Unable to clear secure sign-in storage");return};call.resolve()}
 }
