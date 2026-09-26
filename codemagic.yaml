@@ -34,6 +34,7 @@ workflows:
       - build/ios/ipa/*.ipa
       - build/iphone-launch.png
       - build/simulator-compile.log
+      - build/simulator-runtime.log
       - /tmp/xcodebuild_logs/*.log
   ios-simulator:
     name: CrimeWatch iPhone compile check
@@ -86,6 +87,7 @@ workflows:
       - build/ios/ipa/*.ipa
       - build/iphone-launch.png
       - build/simulator-compile.log
+      - build/simulator-runtime.log
       - /tmp/xcodebuild_logs/*.log
     publishing:
       app_store_connect:
