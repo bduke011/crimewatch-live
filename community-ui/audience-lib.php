@@ -8,10 +8,11 @@ function cw_audience_db(): PDO {
 function cw_area(string $area,bool $all=false): bool {return in_array($area,array_merge($all?['all']:[],['polk','shsu','houston','shsu-conroe','shsu-woodlands','sfa','forney','nolan','kaufman']),true);}
 function cw_area_label(string $area): string {return ['polk'=>'Polk County','shsu'=>'Huntsville — SHSU','houston'=>'Houston','shsu-conroe'=>'Conroe — SHSU','shsu-woodlands'=>'The Woodlands — SHSU','sfa'=>'Nacogdoches — SFA','forney'=>'Forney','nolan'=>'Nolan County','kaufman'=>'Kaufman County'][$area]??$area;}
 function cw_reader(): ?array {
+ if(function_exists('cw_cookie_reader')){$persistent=cw_cookie_reader();if($persistent)return $persistent;}
  cw_session();if(empty($_SESSION['reader'])||time()-($_SESSION['reader_active']??0)>86400)return null;
  $st=cw_audience_db()->prepare('SELECT id,email,name,area,created_at,verified_at,version FROM readers WHERE id=? AND verified_at IS NOT NULL');$st->execute([$_SESSION['reader']]);$r=$st->fetch();if(!$r||(int)$r['version']!==($_SESSION['reader_version']??0))return null;$_SESSION['reader_active']=time();unset($r['version']);return $r;
 }
-function cw_reader_required(): array {$r=cw_reader();if(!$r)cw_json(['error'=>'Please sign in with a new email link.'],401);return $r;}
+function cw_reader_required(): array {$r=cw_reader();if(!$r)cw_json(['error'=>'Please sign in to your reader account.'],401);return $r;}
 function cw_mail_link(string $email,string $token): bool {
  $url='https://crimewatch.live/local/account.php#verify='.$token;
  $body="Your Local CrimeWatch sign-in link:\n\n$url\n\nThis link expires in 20 minutes and works once. Open it only if you requested it. Do not forward it.\n\nSigning in verifies your email and creates your reader account if you are new. A free verified account is required to read reports. We do not share your contact details with advertisers.\n\nIf you did not request this email, you can ignore it.\nLocal CrimeWatch\ninfo@crimewatch.live\n";

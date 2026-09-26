@@ -26,7 +26,7 @@ try{
  }
  $reader=cw_reader_required();
  if($action==='save'){$name=cw_text($d,'name',80);$area=cw_text($d,'area',30,true);if(!cw_area($area))throw new InvalidArgumentException('Choose a community.');$db->prepare('UPDATE readers SET name=?,area=? WHERE id=?')->execute([$name,$area,$reader['id']]);cw_json(['ok'=>true,'reader'=>cw_reader()]);}
- if($action==='logout'){unset($_SESSION['reader'],$_SESSION['reader_version'],$_SESSION['reader_active']);session_regenerate_id(true);cw_json(['ok'=>true]);}
+ if($action==='logout'){if(isset($_COOKIE['CWREADER'])){$db->prepare('DELETE FROM member_tokens WHERE hash=?')->execute([hash('sha256',$_COOKIE['CWREADER'])]);cw_reader_cookie('',true);}unset($_SESSION['reader'],$_SESSION['reader_version'],$_SESSION['reader_active']);session_regenerate_id(true);cw_json(['ok'=>true]);}
  if($action==='delete'){if(($d['confirm']??'')!=='DELETE')throw new InvalidArgumentException('Type DELETE to confirm.');$db=cw_member_db();$db->beginTransaction();cw_forget_reader((int)$reader['id']);$db->prepare('DELETE FROM member_codes WHERE email=?')->execute([$reader['email']]);$db->prepare('DELETE FROM reader_tokens WHERE email=?')->execute([$reader['email']]);$db->prepare('DELETE FROM readers WHERE id=?')->execute([$reader['id']]);$db->commit();unset($_SESSION['reader'],$_SESSION['reader_version'],$_SESSION['reader_active']);session_regenerate_id(true);cw_json(['ok'=>true]);}
  cw_json(['error'=>'Unknown action'],404);
 }catch(InvalidArgumentException $e){cw_json(['error'=>$e->getMessage()],400);}catch(Throwable $e){error_log('CW reader account: '.$e->getMessage());cw_json(['error'=>'Service temporarily unavailable. Please try again.'],503);}
