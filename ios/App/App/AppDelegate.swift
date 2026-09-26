@@ -18,6 +18,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         CrimeWatchLocationMonitor.shared.configure(enabled: false, id: nil, secret: nil, requestPermission: false)
+        #if DEBUG && targetEnvironment(simulator)
+        if ProcessInfo.processInfo.arguments.contains("--member-self-test") { memberStorageSmoke() }
+        #endif
         return true
     }
 
@@ -146,3 +149,17 @@ public class CrimeWatchSessionPlugin: CAPPlugin, CAPBridgedPlugin {
  @objc func set(_ call: CAPPluginCall) {guard let value=call.getString("value"),value.count==64,let data=value.data(using:.utf8) else {call.reject("Invalid session");return};var q=query;SecItemDelete(q as CFDictionary);q[kSecValueData as String]=data;q[kSecAttrAccessible as String]=kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly;guard SecItemAdd(q as CFDictionary,nil)==errSecSuccess else {call.reject("Unable to save secure sign-in storage");return};call.resolve()}
  @objc func remove(_ call: CAPPluginCall) {let status=SecItemDelete(query as CFDictionary);if status != errSecSuccess && status != errSecItemNotFound {call.reject("Unable to clear secure sign-in storage");return};call.resolve()}
 }
+
+#if DEBUG && targetEnvironment(simulator)
+private func memberStorageSmoke() {
+ let value=Data("isolated-simulator-test".utf8)
+ let query:[String:Any]=[kSecClass as String:kSecClassGenericPassword,kSecAttrService as String:"live.crimewatch.app.smoke",kSecAttrAccount as String:"isolated-test"]
+ SecItemDelete(query as CFDictionary)
+ var add=query;add[kSecValueData as String]=value;add[kSecAttrAccessible as String]=kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
+ let created=SecItemAdd(add as CFDictionary,nil)
+ var read=query;read[kSecReturnData as String]=true;read[kSecMatchLimit as String]=kSecMatchLimitOne
+ var item:CFTypeRef?;let loaded=SecItemCopyMatching(read as CFDictionary,&item)
+ let removed=SecItemDelete(query as CFDictionary)
+ if created==errSecSuccess && loaded==errSecSuccess && (item as? Data)==value && removed==errSecSuccess {NSLog("CrimeWatch secure storage smoke PASS")} else {NSLog("CrimeWatch secure storage smoke FAIL %d %d %d",created,loaded,removed)}
+}
+#endif
