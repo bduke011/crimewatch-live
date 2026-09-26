@@ -1,3 +1,4 @@
+import {startWalkthrough} from './walkthrough.js?v=1';
 import {requireAccount} from './auth.js';
 await requireAccount();
 import {locationPoint,locationError} from './location.js';
@@ -61,3 +62,5 @@ $('locate').onclick=()=>{
  },error=>{if(request!==locationRequest)return;$('locate').disabled=false;$('locationStatus').textContent=locationError(error);if(!userLocation)$('clearLocation').hidden=true;},{enableHighAccuracy:false,timeout:15000,maximumAge:60000});
 };
 $('clearLocation').onclick=()=>{locationRequest++;userLocation=null;locationMarker?.remove();locationAccuracy?.remove();locationMarker=null;locationAccuracy=null;$('clearLocation').hidden=true;$('locate').disabled=false;$('locationStatus').textContent='Location cleared.';fit();};
+
+void startWalkthrough();
