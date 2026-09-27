@@ -31,3 +31,5 @@ if(native){
  for(const [id,enabled]of [['enablePush',true],['disablePush',false]])$(id).onclick=async()=>{$(id).disabled=true;try{await window.CWNotifications(enabled);$('pushPreference').textContent=enabled?'Notifications are on.':'Notifications are off.';}catch(e){$('pushPreference').textContent=e.message;}finally{$(id).disabled=false;}};
 }
 (async()=>{try{const d=await auth('session');reader=d.reader;hasPassword=d.hasPassword;csrf=d.csrf||'';render();if(native)$('pushPreference').textContent=await window.CWNotificationStatus()?'Notifications are on.':'Notifications are off.';}catch(e){message(e.message,true);}})();
+
+$('showPassword').onchange=()=>{$('signInForm').elements.password.type=$('showPassword').checked?'text':'password';};
