@@ -8,10 +8,10 @@ const output=resolve(root,'dist-mobile');
 if(process.cwd()!==root || dirname(output)!==root)throw Error('Build must run in the project root');
 await rm(output,{recursive:true,force:true});await mkdir('dist-mobile',{recursive:true});
 for(const file of await readdir('community-ui')){
- if(!/\.(html|css|js|svg)$/.test(file))continue;
+ if(!/\.(html|css|js|svg|json)$/.test(file))continue;
  let s=await readFile('community-ui/'+file,'utf8');
  if(file.endsWith('.html')){s=s.replaceAll('account.php','account.html').replaceAll('href="./"','href="index.html"').replace('width=device-width,initial-scale=1','width=device-width,initial-scale=1,viewport-fit=cover').replace('</head>','<link rel="stylesheet" href="member-mobile.css"><script src="mobile.js"></script></head>');s=s.replace(/<a[^>]*href="admin.php"[^>]*>.*?<\/a>/g,'');}
- if(file.endsWith('.js')){s=s.replaceAll('account.php','account.html').replaceAll('href="./"','href="index.html"').replaceAll('src="jail-photo.php?', 'data-native-image="jail-photo.php?').replaceAll('src="ads-image.php?', 'data-native-image="ads-image.php?');if(file==='app.js')s=s.replace('navigator.geolocation.getCurrentPosition(', 'window.CWGetCurrentPosition(');}
+ if(file.endsWith('.js')){s=s.replaceAll('account.php','account.html').replaceAll('href="./"','href="index.html"').replaceAll('src="jail-photo.php?', 'data-native-image="jail-photo.php?').replaceAll('src="ads-image.php?', 'data-native-image="ads-image.php?');if(file==='app.js')s=s.replace('src="${r.county}-photo.php?', 'data-native-image="${r.county}-photo.php?');if(file==='app.js')s=s.replace('navigator.geolocation.getCurrentPosition(', 'window.CWGetCurrentPosition(');}
  if(file.endsWith('.css'))s=s.replace(/@import\s+url\([^)]*fonts.googleapis[^)]*\);?/g,'');
  await writeFile('dist-mobile/'+file,s);
 }

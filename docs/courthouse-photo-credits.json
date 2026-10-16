@@ -1,0 +1,29 @@
+[
+  {
+    "county": "polk",
+    "file": "File:Polk County Courthouse, Livingston, Texas 1708201709 (37136642866).jpg",
+    "author": "Patrick Feller",
+    "license": "CC BY 2.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Polk_County_Courthouse,_Livingston,_Texas_1708201709_(37136642866).jpg",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+    "display": "Cropped by CSS; source file unchanged."
+  },
+  {
+    "county": "liberty",
+    "file": "File:Liberty County Courthouse, Liberty, Texas 0321091220 (3379808402).jpg",
+    "author": "Patrick Feller",
+    "license": "CC BY 2.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Liberty_County_Courthouse,_Liberty,_Texas_0321091220_(3379808402).jpg",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+    "display": "Cropped by CSS; source file unchanged."
+  },
+  {
+    "county": "angelina",
+    "file": "File:Angelina County Courthouse, Lufkin, Texas 1708201604 (36514799203).jpg",
+    "author": "Patrick Feller",
+    "license": "CC BY 2.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Angelina_County_Courthouse,_Lufkin,_Texas_1708201604_(36514799203).jpg",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+    "display": "Cropped by CSS; source file unchanged."
+  }
+]

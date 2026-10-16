@@ -1,4 +1,4 @@
-import {track,observeAd,releaseAds} from './analytics.js?v=1';
+import {track,observeAd,releaseAds} from './analytics.js?v=home1';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const dialog=document.createElement('dialog');dialog.className='ad-dialog';document.body.append(dialog);let feed={ads:[],slots:{top:true,arrests:true,footer:false}},selectionSeed=Math.random();
 function open(body){dialog.innerHTML='<div class="ad-dialog-header"><span>Business details</span><button type="button" class="ad-dismiss" aria-label="Close advertisement">Close ×</button></div><div class="ad-dialog-body">'+body+'</div>';dialog.querySelector('.ad-dismiss').onclick=()=>dialog.close();if(!dialog.open)dialog.showModal();dialog.querySelector('.ad-dialog-body').scrollTop=0;dialog.querySelector('.ad-dismiss').focus();}
